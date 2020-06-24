@@ -15,12 +15,12 @@ function addTodo(event) {
     //create ui
     createUI(inputValue);
     //clear input
-    inputDOM.innerHTML = ''
+    clearInput();
     //show success
-    // showAlert("success");
+    showAlert("success", "Successfully added");
   } else {
     //show alert
-    // showAlert("fail");
+    showAlert("fail", "You did not add any item. Please type again");
   }
 }
 
@@ -50,7 +50,7 @@ function getLS() {
   return items;
 }
 
-//creates ui
+//creates UI
 function createUI(inputValue) {
   //create element
   const li = document.createElement("li");
@@ -60,59 +60,86 @@ function createUI(inputValue) {
   li.innerText = inputValue;
   //add to DOM
   display.appendChild(li);
-  // // removeAlert()
 }
 
 //display items from local storage
 function getItemsFromLS() {
   const items = getLS();
   items.forEach((items) => {
-    createUI(items)
+    createUI(items);
   });
 }
 
-
-
-//alert
-function showAlert(err) {
+//creates alert div and message
+function showAlert(err, msg) {
   if (err === "success") {
+    removeAlert();
     //create alert div
     const div = document.createElement("div");
     //add text
-    // div.append(document.createTextNode("Item has been added successfully"));
+    div.append(document.createTextNode(msg));
     //add class
     div.classList.add("alert", "alert-success");
 
     //add to before
     alertDOM.appendChild(div);
   } else {
+    removeAlert();
     //create alert div
     const div = document.createElement("div");
     //add text
-    div.textContent = "You need to type something!";
+    div.append(document.createTextNode(msg));
     //add class
     div.classList.add("alert", "alert-danger");
 
     //add to before
     alertDOM.append(div);
   }
+  //remove alert after 1
+  setTimeout(() => {
+    removeAlert();
+  }, 1000);
 }
-//fix this later
+//removes the alert from DOM
+function removeAlert() {
+  const alert = document.querySelector(".alert");
+  if (alert) {
+    alert.remove();
+  }
+}
 
-// function removeAlert() {
-//   setTimeout(() => {
-//     const alert = document.querySelector(".alert");
-//     if (alert.classList.contains("alert-success")) {
-//       alert.classList.remove('alert');
-//       alert.classList.remove('alert-success');
-//     }
-//   }, 2000);
-// }
+function clearInput() {
+  inputDOM.value = "";
+}
 
+//removing elements from the DOM
+function removeFromDOM(e) {
+  const target = e.target;
+  if (target.classList.contains("list-group-item")) {
+    if (confirm("Are you sure you want to delete this")) {
+      //remove item from DOM
+      target.remove();
+      removeFromLS(target);
+    } else {
+      //reload page
+      window.location.reload();
+    }
+  }
+}
+//removes items from local storage
+function removeFromLS(item) {
+  const itemName = item.innerText;
+  if (localStorage.getItem("todos") !== null) {
+    const items = JSON.parse(localStorage.getItem("todos"));
+    const newItems = items.filter((item) => item !== itemName);
+    localStorage.setItem("todos", JSON.stringify(newItems));
+  }
+}
 
 btnSubmit.addEventListener("click", addTodo);
-addTodo();
 
-document.addEventListener('DOMContentLoaded', () => {
-  getItemsFromLS()
-})
+display.addEventListener("click", removeFromDOM);
+
+document.addEventListener("DOMContentLoaded", () => {
+  getItemsFromLS();
+});
